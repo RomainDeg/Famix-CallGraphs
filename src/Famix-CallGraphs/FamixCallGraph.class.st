@@ -9,6 +9,32 @@ Class {
 	#package : 'Famix-CallGraphs'
 }
 
+{ #category : 'comparing' }
+FamixCallGraph >> = aCallGraph [
+
+	| sortMethod selfNodesSorted otherNodesSorted |
+	"self allNodes size = aCallGraph allNodes size ifFalse: [ ^ false ]."
+	sortMethod := [ :a :b |
+		              (String streamContents: [ :s | a printOn: s ])
+		              > (String streamContents: [ :s | b printOn: s ]) ].
+
+	selfNodesSorted := self allNodes sorted: sortMethod.
+	otherNodesSorted := aCallGraph allNodes sorted: sortMethod.
+
+	selfNodesSorted withIndexDo: [ :el :i |
+			| otherEl |
+			otherEl := otherNodesSorted at: i.
+			(el = otherEl and: [
+					 el callers size = otherEl callers size and: [
+							 (el callers includesAll: otherEl callers) and: [
+									 el callees size = otherEl callees size and: [
+										 el callees includesAll: otherEl callees ] ] ] ]) ifFalse: [
+					1 halt
+					"^ false" ] ].
+
+	^ true
+]
+
 { #category : 'adding' }
 FamixCallGraph >> addError: aNode [
 

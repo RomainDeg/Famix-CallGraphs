@@ -26,7 +26,7 @@ FamixAbstractCallGraphNode >> = anObject [
 
 	self == anObject ifTrue: [ ^ true ].
 	self class = anObject class ifFalse: [ ^ false ].
-	^ methodSignature = anObject methodSignature and: [ kind = anObject kind ]
+	^ methodSignature = anObject methodSignature and: [ kind mooseName = anObject kind mooseName ]
 ]
 
 { #category : 'adding' }
@@ -219,7 +219,7 @@ FamixAbstractCallGraphNode >> printOn: aStream [
 	super printOn: aStream.
 	aStream
 		nextPutAll: ' (';
-		nextPutAll: self kindName;
+		nextPutAll: self kind mooseName;
 		nextPutAll: '>>';
 		nextPutAll: self methodSignature;
 		nextPutAll: ')'
