@@ -134,13 +134,38 @@ FamixJavaCHABuilder >> build [
 { #category : 'building' }
 FamixJavaCHABuilder >> computeCallGraphOf: aNode [
 
-	aNode outgoingInvocations do: [ :invocation |
+	| invocations |
+	invocations := self filteredOutgoingInvocationsForNode: aNode.
+
+	invocations do: [ :invocation |
 			(invocation isSuperInvocation or: [ invocation invokedEntity isConstructor ])
 				ifTrue: [ self addEdgesTo: aNode for: invocation types: { invocation invokedEntity parentType } ]
 				ifFalse: [ self addEdgesTo: aNode for: invocation types: (self possibleRuntimeTypesOf: invocation invokedEntity parentType) ] ].
 			
 	"We allow the user to define a block to add edges if reflection is involved and the user knows what to call"
 	self reflectiveHook cull: aNode cull: self
+]
+
+{ #category : 'building' }
+FamixJavaCHABuilder >> filteredOutgoingInvocationsForNode: aNode [
+
+	^ aNode outgoingInvocations reject: [ :inv |
+			  inv class = FamixJavaParametricInvocation or: [
+					  inv target first name = 'clone' or: [
+							  inv target first parentType name = '<StubMethodContainer>'
+								  or: [
+										  inv target first isParametricEntity or: [
+												  inv target first containers anySatisfy: [ :c |
+													  c isParametricEntity or: [
+														  c isType and: [ c isInnerClass ] ] ] ] ] ] ] ]
+]
+
+{ #category : 'building' }
+FamixJavaCHABuilder >> filteredRuntimeTypes: possibleRuntimeTypes [
+
+	^ possibleRuntimeTypes reject: [ :rtt |
+			  rtt isInnerClass or: [
+				  rtt isParametricEntity or: [ rtt name = '<StubMethodContainer>' ] ] ]
 ]
 
 { #category : 'initialization' }
@@ -177,7 +202,7 @@ FamixJavaCHABuilder >> nodeForMethodSignature: signature kind: kind stub: aBoole
 { #category : 'building' }
 FamixJavaCHABuilder >> possibleRuntimeTypesOf: aKind [
 
-	^ typesMap at: aKind ifAbsentPut: [ aKind possibleRuntimeTypes ]
+	^ typesMap at: aKind ifAbsentPut: [ self filteredRuntimeTypes: aKind possibleRuntimeTypes ]
 ]
 
 { #category : 'accessing' }
