@@ -29,8 +29,7 @@ FamixCallGraph >> = aCallGraph [
 							 (el callers includesAll: otherEl callers) and: [
 									 el callees size = otherEl callees size and: [
 										 el callees includesAll: otherEl callees ] ] ] ]) ifFalse: [
-					1 halt
-					"^ false" ] ].
+				^ false ] ].
 
 	^ true
 ]
